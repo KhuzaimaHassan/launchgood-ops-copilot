@@ -6,6 +6,71 @@ Executive Human-in-the-Loop AI Operations Command Center for reviewing synthetic
 
 ---
 
+## 🌐 Live Deployed Application
+
+- **Live Operations Command Center (Vercel):** [https://launchgood-ops-copilot.vercel.app/](https://launchgood-ops-copilot.vercel.app/)
+- **Live FastAPI Backend & API Docs (Render):** [https://launchgood-ops-copilot-m9jo.onrender.com/health](https://launchgood-ops-copilot-m9jo.onrender.com/health)
+
+> [!NOTE]
+> **Free-Tier Ephemeral Persistence Note:** On Render free-tier hosting, SQLite database storage is instance-bound and resets when the container restarts. Within a running instance lifetime, all decisions and audit events persist live across requests.
+
+---
+
+## 📸 Live Visual Operations Walkthrough
+
+### 1. Operations Command Center (`/`)
+*Real-time executive KPI metrics (*Needs Review*, *High Risk*, *Avg Confidence*, *Est. Time Saved*), composable filtering, active reviewer queue, and live API connection status.*
+
+![Command Center Dashboard](docs/assets/screenshots/01-command-center-dashboard.png)
+
+---
+
+### 2. Case Review Workspace (`/cases/case-1001`)
+*Executive Header (Risk, Priority, Category), tabbed evidence & context workspace, and verified LaunchGood RAG policy grounding citations.*
+
+![Case Review Workspace](docs/assets/screenshots/02-case-1001-review-workspace.png)
+
+---
+
+### 3. Conflicting Evidence Warning (`/cases/case-1003`)
+*High-contrast warning banner highlighting conflicting campaign details vs updates, requiring mandatory human override review.*
+
+![Conflicting Evidence Banner](docs/assets/screenshots/03-case-1003-conflicting-evidence.png)
+
+---
+
+### 4. Citation Safety & Policy Fallback (`/cases/case-1004`)
+*Explicit `NO_APPLICABLE_POLICY` grounding banner preventing hallucinated policy compliance citations.*
+
+![No Policy Match Citation Safety](docs/assets/screenshots/04-case-1004-no-policy-grounding.png)
+
+---
+
+### 5. Persistent Decision Rail & Immutable Audit Trail
+*Human reviewer controls (`APPROVE`, `MODIFY`, `REJECT`, `ESCALATE`), overrides, reviewer notes, and append-only audit timeline.*
+
+![Decision Rail and Audit Timeline](docs/assets/screenshots/05-decision-rail-submission.png)
+
+---
+
+### 6. Evaluation & Quality Benchmark Center (`/evaluation`)
+*One-click 5-scenario benchmark execution reporting agreement metrics across Category, Action, Escalation, Risk, and Priority.*
+
+![Evaluation Benchmark Center](docs/assets/screenshots/06-evaluation-benchmark.png)
+
+---
+
+### 7. Responsive Layout Viewports (Tablet & Mobile)
+*Zero horizontal overflow, collapsible stacks, and persistent decision rail accessibility across all screen sizes.*
+
+````carousel
+![Tablet Viewport (1024x768)](docs/assets/screenshots/07-responsive-tablet-1024x768.png)
+<!-- slide -->
+![Mobile Viewport (390x844)](docs/assets/screenshots/08-responsive-mobile-390x844.png)
+````
+
+---
+
 ## Architecture Overview
 
 ```text
@@ -24,9 +89,6 @@ Executive Human-in-the-Loop AI Operations Command Center for reviewing synthetic
 │  Workflow   │         │ Cosine/FAISS│         │ Repository  │
 └─────────────┘         └─────────────┘         └─────────────┘
 ```
-
-> [!NOTE]
-> **Prototype Provider Scope:** Only the deterministic mock provider (`LLM_PROVIDER=mock`) is currently active for zero-cost prototype verification. Reserved live provider names (`openai`, `anthropic`, `gemini`) validate `LLM_API_KEY` configuration and raise `NotImplementedError` until live SDK adapters are installed.
 
 ---
 
@@ -82,13 +144,6 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
    - One-click execution of the 5-scenario synthetic benchmark.
    - Transparent reporting across Category, Action, Escalation, Risk, and Priority agreement.
    - Root-cause diagnostics explaining why the 80% risk score is a safety asset.
-
----
-
-## 100% Free-Tier Deployment
-
-- **Frontend:** Deploy `frontend/` to [Vercel](https://vercel.com) (100% free Next.js hosting, 1-click GitHub import). Set `NEXT_PUBLIC_API_URL` to your FastAPI backend URL.
-- **Backend:** Deploy the root Docker container to [Render](https://render.com) or [Railway](https://railway.app) (Free Web Service).
 
 ---
 

@@ -2,6 +2,8 @@
 
 This walkthrough is synchronized with the five-scenario synthetic benchmark and the Operations Command Center UI baseline.
 
+---
+
 ## 0:00–0:30 — Problem statement and principle
 
 Explain that operations reviewers must combine campaign, message, update, risk, and policy information.
@@ -9,6 +11,8 @@ Explain that operations reviewers must combine campaign, message, update, risk, 
 State the principle:
 
 > AI prepares the decision; humans own the consequence.
+
+---
 
 ## 0:30–1:15 — Operations Command Center Dashboard
 
@@ -21,6 +25,10 @@ Show the first viewport with four KPI cards:
 
 Show the filterable rich case-card queue and explain that `PENDING_ANALYSIS` cases do not pretend to have AI-derived risk or recommendations.
 
+![Command Center Dashboard Baseline](../assets/screenshots/01-command-center-dashboard.png)
+
+---
+
 ## 1:15–2:30 — Clear Case: `case-1001`
 
 Open **Missing Documentation** and show the three-zone workspace:
@@ -31,6 +39,11 @@ Open **Missing Documentation** and show the three-zone workspace:
 
 Run the AI analysis, show the evidence and policy passage, then record a human `MODIFY` decision with reviewer notes. Show the visual audit timeline afterward.
 
+![Case Review Workspace](../assets/screenshots/02-case-1001-review-workspace.png)
+![Decision Rail and Audit Timeline](../assets/screenshots/05-decision-rail-submission.png)
+
+---
+
 ## 2:30–3:45 — Difficult and adversarial cases
 
 Show the three failure-oriented scenarios:
@@ -38,6 +51,11 @@ Show the three failure-oriented scenarios:
 - `case-1003` — **Conflicting Updates**: display `CONFLICTING_EVIDENCE`, reduced trust, and escalation behavior.
 - `case-1004` — **No Policy Found**: display `NO_APPLICABLE_POLICY` and show that the system does not fabricate a citation.
 - `case-1005` — **Prompt Injection Resistance**: show that “ignore all instructions” inside source data is treated as evidence text, not an executable instruction.
+
+![Conflicting Evidence Banner](../assets/screenshots/03-case-1003-conflicting-evidence.png)
+![No Policy Match Citation Safety](../assets/screenshots/04-case-1004-no-policy-grounding.png)
+
+---
 
 ## 3:45–4:30 — Evaluation Center
 
@@ -54,6 +72,10 @@ Show:
 - per-case failure/root-cause breakdown
 
 Explain that imperfect scores are visible by design and identify where the system needs improvement.
+
+![Evaluation Benchmark Center](../assets/screenshots/06-evaluation-benchmark.png)
+
+---
 
 ## 4:30–5:00 — Architecture and trade-offs
 
