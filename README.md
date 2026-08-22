@@ -63,11 +63,11 @@ Executive Human-in-the-Loop AI Operations Command Center for reviewing synthetic
 ### 7. Responsive Layout Viewports (Tablet & Mobile)
 *Zero horizontal overflow, collapsible stacks, and persistent decision rail accessibility across all screen sizes.*
 
-````carousel
+#### Tablet Viewport (`1024 × 768`)
 ![Tablet Viewport (1024x768)](docs/assets/screenshots/07-responsive-tablet-1024x768.png)
-<!-- slide -->
+
+#### Mobile Viewport (`390 × 844`)
 ![Mobile Viewport (390x844)](docs/assets/screenshots/08-responsive-mobile-390x844.png)
-````
 
 ---
 
