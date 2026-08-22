@@ -236,7 +236,7 @@ def _render_decision_rail(st, case: Case, assessment, decision_service: Decision
             )
             st.success("Human decision recorded and audit timeline updated.")
             st.rerun()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             st.error(f"Failed to record decision: {type(exc).__name__} - {exc!s}")
 
 
@@ -266,13 +266,14 @@ def _render_review(st, repository, case_service, analysis_service, decision_serv
     )
     header_metrics[4].metric("Recommended Action", assessment.recommendation_action.value if assessment else "—")
     
-    if case.status in {CaseStatus.PENDING_ANALYSIS, CaseStatus.FAILED}:
-        if st.button("Run AI Assessment", type="primary", use_container_width=True):
-            try:
-                analysis_service.analyze(case.case_id)
-                st.rerun()
-            except Exception as exc:
-                st.error(f"Analysis failed: {type(exc).__name__} - {exc!s}")
+    if case.status in {CaseStatus.PENDING_ANALYSIS, CaseStatus.FAILED} and st.button(
+        "Run AI Assessment", type="primary", use_container_width=True
+    ):
+        try:
+            analysis_service.analyze(case.case_id)
+            st.rerun()
+        except Exception as exc:  # noqa: BLE001
+            st.error(f"Analysis failed: {type(exc).__name__} - {exc!s}")
                 
     evidence_col, rail_col = st.columns([2.1, 1], gap="large")
     with evidence_col:
@@ -406,7 +407,7 @@ def _render_evaluation(st, cases, evaluation_service, analysis_service) -> None:
         try:
             result = evaluation_service.run(cases, expected_by_case=evaluation_service.load_ground_truth())
             st.session_state["evaluation_result"] = result
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             st.error(f"Benchmark execution failed: {type(exc).__name__} - {exc!s}")
         
     result = st.session_state.get("evaluation_result")

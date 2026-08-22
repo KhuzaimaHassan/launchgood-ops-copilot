@@ -134,7 +134,7 @@ def validate_assessment(state: WorkflowState) -> WorkflowState:
         raise ValueError("assessment draft is required")
     try:
         state.assessment_draft = AssessmentDraft.model_validate(state.assessment_draft)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         state.errors.append(
             WorkflowError(code="INVALID_ASSESSMENT", message=str(exc), retryable=True)
         )

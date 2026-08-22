@@ -170,7 +170,7 @@ class EvaluationService:
                                 tags=expected.get("tags", []),
                             )
                         )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 run.failed += 1
                 run.failures.append(
                     EvaluationFailure(
