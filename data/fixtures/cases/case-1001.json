@@ -1,0 +1,38 @@
+{
+  "case_id": "case-1001",
+  "campaign": {
+    "campaign_id": "campaign-1001",
+    "title": "Fictional Emergency Medical Fund",
+    "description": "Synthetic campaign requesting support for emergency treatment.",
+    "organizer_summary": "Synthetic organizer with incomplete documentation.",
+    "created_at": "2026-01-10T10:00:00Z",
+    "updated_at": "2026-01-12T10:00:00Z"
+  },
+  "title": "Missing treatment documentation",
+  "intake_category": "DOCUMENTATION_CONCERN",
+  "initial_priority": "HIGH",
+  "status": "PENDING_ANALYSIS",
+  "support_messages": [
+    {
+      "source_id": "message-1001-01",
+      "case_id": "case-1001",
+      "channel": "SUPPORT",
+      "author_role": "SUPPORTER",
+      "content": "Synthetic supporter asks whether treatment documents are available.",
+      "created_at": "2026-01-12T11:00:00Z"
+    }
+  ],
+  "campaign_updates": [],
+  "risk_signals": [
+    {
+      "signal_id": "signal-1001-01",
+      "case_id": "case-1001",
+      "signal_type": "DOCUMENTATION",
+      "value": {"documents_present": false},
+      "severity": "MEDIUM",
+      "source_ref": "message-1001-01"
+    }
+  ],
+  "created_at": "2026-01-12T11:00:00Z",
+  "updated_at": "2026-01-12T11:00:00Z"
+}

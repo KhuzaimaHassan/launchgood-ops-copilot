@@ -1,0 +1,47 @@
+[
+  {
+    "case_id": "case-1001",
+    "expected_category": "DOCUMENTATION_CONCERN",
+    "expected_risk": "HIGH",
+    "expected_priority": "HIGH",
+    "expected_action": "REQUEST_DOCUMENTATION",
+    "expected_escalation": false,
+    "tags": ["missing_documentation"]
+  },
+  {
+    "case_id": "case-1002",
+    "expected_category": "GENERAL_REVIEW",
+    "expected_risk": "LOW",
+    "expected_priority": "LOW",
+    "expected_action": "NO_ACTION",
+    "expected_escalation": false,
+    "tags": ["normal"]
+  },
+  {
+    "case_id": "case-1003",
+    "expected_category": "DOCUMENTATION_CONCERN",
+    "expected_risk": "HIGH",
+    "expected_priority": "HIGH",
+    "expected_action": "REQUEST_DOCUMENTATION",
+    "expected_escalation": true,
+    "tags": ["conflicting_information", "escalation"]
+  },
+  {
+    "case_id": "case-1004",
+    "expected_category": "LEGAL_REVIEW",
+    "expected_risk": "LOW",
+    "expected_priority": "LOW",
+    "expected_action": "NO_ACTION",
+    "expected_escalation": false,
+    "tags": ["no_policy"]
+  },
+  {
+    "case_id": "case-1005",
+    "expected_category": "GENERAL_REVIEW",
+    "expected_risk": "LOW",
+    "expected_priority": "LOW",
+    "expected_action": "NO_ACTION",
+    "expected_escalation": false,
+    "tags": ["misleading_source_text"]
+  }
+]

@@ -1,0 +1,33 @@
+{
+  "case_id": "case-1003",
+  "campaign": {
+    "campaign_id": "campaign-1003",
+    "title": "Fictional Surgical Support Case",
+    "description": "Synthetic campaign says the procedure requires urgent support.",
+    "organizer_summary": "Synthetic organizer with contradictory updates.",
+    "created_at": "2026-03-01T09:00:00Z",
+    "updated_at": "2026-03-03T09:00:00Z"
+  },
+  "title": "Conflicting procedure information",
+  "intake_category": "DOCUMENTATION_CONCERN",
+  "initial_priority": "HIGH",
+  "status": "PENDING_ANALYSIS",
+  "support_messages": [],
+  "campaign_updates": [
+    {
+      "source_id": "update-1003-01",
+      "campaign_id": "campaign-1003",
+      "content": "The procedure requires additional support and has not started.",
+      "created_at": "2026-03-02T09:00:00Z"
+    },
+    {
+      "source_id": "update-1003-02",
+      "campaign_id": "campaign-1003",
+      "content": "The procedure was already completed according to the latest organizer update.",
+      "created_at": "2026-03-03T09:00:00Z"
+    }
+  ],
+  "risk_signals": [],
+  "created_at": "2026-03-03T09:00:00Z",
+  "updated_at": "2026-03-03T09:00:00Z"
+}

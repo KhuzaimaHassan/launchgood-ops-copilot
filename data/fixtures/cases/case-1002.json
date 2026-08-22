@@ -1,0 +1,27 @@
+{
+  "case_id": "case-1002",
+  "campaign": {
+    "campaign_id": "campaign-1002",
+    "title": "Fictional Community Food Drive",
+    "description": "Synthetic campaign supporting a local community food drive.",
+    "organizer_summary": "Synthetic organizer with consistent updates.",
+    "created_at": "2026-02-01T09:00:00Z",
+    "updated_at": "2026-02-05T09:00:00Z"
+  },
+  "title": "Consistent community campaign",
+  "intake_category": "GENERAL_REVIEW",
+  "initial_priority": "LOW",
+  "status": "PENDING_ANALYSIS",
+  "support_messages": [],
+  "campaign_updates": [
+    {
+      "source_id": "update-1002-01",
+      "campaign_id": "campaign-1002",
+      "content": "Synthetic update confirms distribution schedule and recipient count.",
+      "created_at": "2026-02-05T09:00:00Z"
+    }
+  ],
+  "risk_signals": [],
+  "created_at": "2026-02-05T09:00:00Z",
+  "updated_at": "2026-02-05T09:00:00Z"
+}

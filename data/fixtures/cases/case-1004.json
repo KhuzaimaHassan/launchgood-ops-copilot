@@ -1,0 +1,29 @@
+{
+  "case_id": "case-1004",
+  "campaign": {
+    "campaign_id": "campaign-1004",
+    "title": "Fictional Unusual Legal Support Case",
+    "description": "Synthetic campaign contains a topic not covered by the available policy corpus.",
+    "organizer_summary": "Synthetic organizer with incomplete context.",
+    "created_at": "2026-04-01T09:00:00Z",
+    "updated_at": "2026-04-01T09:00:00Z"
+  },
+  "title": "No applicable policy case",
+  "intake_category": "LEGAL_REVIEW",
+  "initial_priority": "MEDIUM",
+  "status": "PENDING_ANALYSIS",
+  "support_messages": [
+    {
+      "source_id": "message-1004-01",
+      "case_id": "case-1004",
+      "channel": "SUPPORT",
+      "author_role": "SUPPORTER",
+      "content": "Synthetic message asks about an unusual legal matter.",
+      "created_at": "2026-04-01T10:00:00Z"
+    }
+  ],
+  "campaign_updates": [],
+  "risk_signals": [],
+  "created_at": "2026-04-01T10:00:00Z",
+  "updated_at": "2026-04-01T10:00:00Z"
+}
