@@ -1,6 +1,8 @@
 import { Case, AIAssessment, ReviewerDecision, AuditEvent, EvaluationRun } from "@/types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+export const API_BASE = (
+  process.env.NEXT_PUBLIC_API_URL || "https://launchgood-ops-copilot-m9jo.onrender.com"
+).replace(/\/$/, "");
 
 let isOfflineFallbackActive = false;
 
@@ -114,7 +116,7 @@ export async function submitDecision(caseId: string, payload: {
   } catch (netErr) {
     isOfflineFallbackActive = true;
     console.warn("⚠️ Network unreachable during decision submission", netErr);
-    throw new Error("Backend unavailable (http://localhost:8000). Consequential decision was NOT recorded. Launch FastAPI to persist decisions.");
+    throw new Error(`Backend unavailable (${API_BASE}). Consequential decision was NOT recorded. Start the API service to persist decisions.`);
   }
 
   if (!res.ok) {

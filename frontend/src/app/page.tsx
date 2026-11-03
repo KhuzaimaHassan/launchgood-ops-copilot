@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Case, AIAssessment } from "@/types";
-import { getCases, getCaseDetails, isFallbackActive } from "@/lib/api";
+import { API_BASE, getCases, getCaseDetails, isFallbackActive } from "@/lib/api";
 import MetricCard from "@/components/MetricCard";
 import CaseCard from "@/components/CaseCard";
 import { ShieldAlert, Inbox, CheckCircle2, Clock, Sparkles, Filter, X, AlertTriangle } from "lucide-react";
@@ -109,7 +109,7 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-950/80 border border-amber-800/80 text-amber-300 text-xs font-semibold shadow-lg">
           <AlertTriangle className="w-5 h-5 flex-shrink-0 text-amber-400" />
           <span>
-            <b>Offline Demo Mode Active:</b> FastAPI backend (<code>http://localhost:8000</code>) is unreachable. Displaying fallback synthetic dataset. Start FastAPI to enable live database persistence.
+            <b>Offline Demo Mode Active:</b> FastAPI backend (<code>{API_BASE}</code>) is unreachable. Displaying fallback synthetic dataset. Start the API service to enable live database persistence.
           </span>
         </div>
       )}

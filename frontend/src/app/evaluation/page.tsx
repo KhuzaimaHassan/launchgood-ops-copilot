@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { runEvaluation, isFallbackActive } from "@/lib/api";
+import { API_BASE, runEvaluation, isFallbackActive } from "@/lib/api";
 import { EvaluationRun } from "@/types";
 import { Play, BarChart3, AlertOctagon, CheckCircle2, AlertTriangle } from "lucide-react";
 
@@ -64,7 +64,7 @@ export default function EvaluationPage() {
         <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-950/80 border border-amber-800/80 text-amber-300 text-xs font-semibold shadow-lg">
           <AlertTriangle className="w-5 h-5 flex-shrink-0 text-amber-400" />
           <span>
-            <b>Offline Demo Benchmark Active:</b> FastAPI backend (<code>http://localhost:8000</code>) is unreachable. Evaluation benchmark metrics are derived from the offline synthetic ground truth set.
+            <b>Offline Demo Benchmark Active:</b> FastAPI backend (<code>{API_BASE}</code>) is unreachable. Evaluation benchmark metrics are derived from the offline synthetic ground truth set.
           </span>
         </div>
       )}
