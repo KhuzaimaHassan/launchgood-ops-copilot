@@ -1,158 +1,176 @@
 # LaunchGood Ops Copilot
 
-Executive Human-in-the-Loop AI Operations Command Center for reviewing synthetic campaign compliance, risk signals, and policy grounding.
+A human-review workflow prototype for **synthetic campaign cases**. It brings campaign context, evidence, local policy references, structured assessments, reviewer decisions, and an audit history into one interface.
 
-> **Core Principle:** *"AI prepares the decision; humans own the consequence."*
+> AI prepares the decision; humans own the consequence.
 
----
+**[Open the demo](https://launchgood-ops-copilot.vercel.app/) · [API documentation](https://launchgood-ops-copilot-m9jo.onrender.com/docs) · [Backend health](https://launchgood-ops-copilot-m9jo.onrender.com/health) · [Engineering docs](docs/README.md)**
 
-## 🌐 Live Deployed Application
+The implemented assessment provider is deterministic (`mock`), and retrieval uses local hash-based embeddings over two synthetic policy documents. This demonstrates the review workflow and its boundaries; it does not establish live-LLM quality or real LaunchGood policy verification. The project uses synthetic fixtures rather than real campaign records.
 
-- **Live Operations Command Center (Vercel):** [https://launchgood-ops-copilot.vercel.app/](https://launchgood-ops-copilot.vercel.app/)
-- **Live FastAPI Backend & API Docs (Render):** [https://launchgood-ops-copilot-m9jo.onrender.com/health](https://launchgood-ops-copilot-m9jo.onrender.com/health)
+![Synthetic campaign review dashboard](docs/assets/screenshots/01-command-center-dashboard.png)
 
-> [!NOTE]
-> **Free-Tier Ephemeral Persistence Note:** On Render free-tier hosting, SQLite database storage is instance-bound and resets when the container restarts. Within a running instance lifetime, all decisions and audit events persist live across requests.
+*Existing dashboard capture. Case counts reflect the captured demo state. Confidence is a rule-derived demo score, and estimated time saved assumes 18 minutes per assessed case rather than a measured productivity improvement.*
 
----
+## Walk through a case
 
-## 📸 Live Visual Operations Walkthrough
+1. **Open a case** from the queue and inspect campaign details, support messages, updates and initial risk signals.
+2. **Run an assessment** to normalize the case, retrieve local policy excerpts, extract evidence, identify conflicts and validate a structured recommendation.
+3. **Review the result** across Evidence, Retrieved Policies, Source Timeline and Uncertainty & Conflicts.
+4. **Record a human decision**: approve, modify, reject or escalate, with optional overrides and reviewer notes. The backend checks the case lifecycle before recording the decision and related audit event.
 
-### 1. Operations Command Center (`/`)
-*Real-time executive KPI metrics (*Needs Review*, *High Risk*, *Avg Confidence*, *Est. Time Saved*), composable filtering, active reviewer queue, and live API connection status.*
+![Case review workspace before assessment](docs/assets/screenshots/02-case-1001-review-workspace.png)
 
-![Command Center Dashboard](docs/assets/screenshots/01-command-center-dashboard.png)
+*Existing case-workspace capture before analysis: the decision rail requires an assessment first. Empty evidence/policy tabs in this image are not proof of a completed assessment.*
 
----
+## Implemented scope
 
-### 2. Case Review Workspace (`/cases/case-1001`)
-*Executive Header (Risk, Priority, Category), tabbed evidence & context workspace, and verified LaunchGood RAG policy grounding citations.*
+| Area | Current implementation |
+| --- | --- |
+| Interface | Next.js 14 / React / Tailwind dashboard, case workspace and evaluation page |
+| API and services | FastAPI routes for cases, assessment, decisions, audit history and evaluation |
+| Workflow | Explicit sequential Python runner with bounded assessment-validation retries |
+| Assessment provider | `FakeLLMProvider`, using normalized synthetic signals and a validated response schema |
+| Retrieval | `LocalPolicyIndex` with 256-dimensional token-hash vectors, cosine ranking and grounding thresholds |
+| Policy corpus | Two versioned, explicitly synthetic Markdown policies under `data/policies/` |
+| Persistence | SQLite-backed cases, assessments, decisions and audit events; evaluation-run lookup is held in memory |
+| Demo data | Five synthetic case fixtures, seeded when the API starts and their IDs are absent |
 
-![Case Review Workspace](docs/assets/screenshots/02-case-1001-review-workspace.png)
-
----
-
-### 3. Conflicting Evidence Warning (`/cases/case-1003`)
-*High-contrast warning banner highlighting conflicting campaign details vs updates, requiring mandatory human override review.*
-
-![Conflicting Evidence Banner](docs/assets/screenshots/03-case-1003-conflicting-evidence.png)
-
----
-
-### 4. Citation Safety & Policy Fallback (`/cases/case-1004`)
-*Explicit `NO_APPLICABLE_POLICY` grounding banner preventing hallucinated policy compliance citations.*
-
-![No Policy Match Citation Safety](docs/assets/screenshots/04-case-1004-no-policy-grounding.png)
-
----
-
-### 5. Persistent Decision Rail & Immutable Audit Trail
-*Human reviewer controls (`APPROVE`, `MODIFY`, `REJECT`, `ESCALATE`), overrides, reviewer notes, and append-only audit timeline.*
-
-![Decision Rail and Audit Timeline](docs/assets/screenshots/05-decision-rail-submission.png)
-
----
-
-### 6. Evaluation & Quality Benchmark Center (`/evaluation`)
-*One-click 5-scenario benchmark execution reporting agreement metrics across Category, Action, Escalation, Risk, and Priority.*
-
-![Evaluation Benchmark Center](docs/assets/screenshots/06-evaluation-benchmark.png)
-
----
-
-### 7. Responsive Layout Viewports (Tablet & Mobile)
-*Zero horizontal overflow, collapsible stacks, and persistent decision rail accessibility across all screen sizes.*
-
-#### Tablet Viewport (`1024 × 768`)
-![Tablet Viewport (1024x768)](docs/assets/screenshots/07-responsive-tablet-1024x768.png)
-
-#### Mobile Viewport (`390 × 844`)
-![Mobile Viewport (390x844)](docs/assets/screenshots/08-responsive-mobile-390x844.png)
-
----
-
-## Architecture Overview
-
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                 Next.js 14 Frontend                         │
-│   (Command Center Dashboard • Case Review • Evaluation)     │
-└──────────────────────────────┬──────────────────────────────┘
-                               │ REST + CORS (JSON)
-┌──────────────────────────────▼──────────────────────────────┐
-│                    FastAPI Backend                          │
-│   (CaseService • AnalysisService • DecisionService)         │
-└──────┬───────────────────────┬───────────────────────┬──────┘
-       │                       │                       │
-┌──────▼──────┐         ┌──────▼──────┐         ┌──────▼──────┐
-│  LangGraph  │         │  Local RAG  │         │   SQLite    │
-│  Workflow   │         │ Cosine/FAISS│         │ Repository  │
-└─────────────┘         └─────────────┘         └─────────────┘
+```mermaid
+flowchart TD
+    UI[Next.js reviewer interface] --> API[FastAPI routes and services]
+    API --> WF[Sequential assessment workflow]
+    WF --> RET[Hash vectors and cosine retrieval]
+    RET --> POL[Two synthetic policy documents]
+    WF --> MOCK[Deterministic assessment provider]
+    MOCK --> VAL[Schema validation and uncertainty flags]
+    VAL --> REVIEW[Human review and decision]
+    REVIEW --> DB[SQLite records and audit events]
 ```
 
----
+The active runner is [AssessmentWorkflow](app/workflow/runner.py), rather than a compiled LangGraph graph. A FAISS index adapter exists in [app/rag/index.py](app/rag/index.py), but the API constructs the local cosine index. Installing optional `rag` dependencies does not switch that wiring to FAISS or a trained embedding model.
 
-## Quickstart
+The [provider factory](app/providers/factory.py) accepts `mock`, `fake` and `deterministic` aliases. OpenAI, Anthropic and Gemini are reserved options that raise configuration/implementation errors; adding an API key alone does not enable a live adapter.
 
-### 1. Backend Service (FastAPI)
+## Run locally
+
+Use **Python 3.11+** and **Node.js 20** (the version used by CI).
+
+### Backend
+
 ```bash
-# Set up virtual environment
+git clone https://github.com/KhuzaimaHassan/launchgood-ops-copilot.git
+cd launchgood-ops-copilot
 python -m venv .venv
-.venv\Scripts\activate
-pip install -e .[api,ui,dev]
-copy .env.example .env
-
-# Launch FastAPI server
-uvicorn app.api.main:app --host 0.0.0.0 --port 8000
 ```
-Verify:
+
+Activate the environment with `.venv\Scripts\Activate.ps1` in PowerShell or `source .venv/bin/activate` in Bash, then run:
+
 ```bash
-curl http://localhost:8000/health
-# {"status":"ok"}
+python -m pip install -e ".[api,dev]" httpx python-dotenv
+cp .env.example .env
+python -m uvicorn app.api.main:app --env-file .env --host 127.0.0.1 --port 8000
 ```
 
-### 2. Frontend Command Center (Next.js 14)
+The explicit `--env-file` loads `.env`; `AppConfig.from_env()` otherwise reads the process environment. `python-dotenv` enables that Uvicorn option, and `httpx` supports the API tests.
+
+The supplied configuration uses `LLM_PROVIDER=mock`, so no external model key is required. SQLite and the local policy corpus are initialized by the application. Open [local health](http://localhost:8000/health) and [local API docs](http://localhost:8000/docs). The health route returns `{"status":"ok"}`; it is not a quality evaluation.
+
+### Frontend
+
+Create `frontend/.env.local` with:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+Set this explicitly for local work: the current frontend default points to the hosted Render backend. In another terminal, from the repository root:
+
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
 
----
+Open [http://localhost:3000](http://localhost:3000). The dashboard and case pages use this API URL. An optional Streamlit interface also exists at `app/ui/streamlit_app.py`; the screenshots above show the Next.js interface.
 
-## Features & Review Workspace
+## Connected mode and offline preview
 
-1. **Operations Command Center (`/`):**
-   - Real-time KPI metric tiles: *Needs Review*, *High Risk*, *Avg Confidence*, *Estimated Time Saved*.
-   - Filter chips: *Needs Attention*, *Pending*, *Awaiting Decision*, *Resolved*.
-   - Interactive 2-column Case Cards grid with one-click review navigation.
+The [frontend API client](frontend/src/lib/api.ts) can substitute bundled cases and assessment/evaluation examples when a network request fails. These fallback assessments are labeled as offline demo results and are not persisted. A visible interface alone therefore does not prove that analysis reached FastAPI.
 
-2. **3-Zone Case Review Workspace (`/cases/[id]`):**
-   - **Zone 1: Executive Case Header:** Risk level, Priority, Category, and Confidence score + tier, with one-click "Run AI Assessment" trigger.
-   - **Zone 2: Tabbed Evidence & Context Workspace:**
-     - *Evidence Tab:* Specific supporting facts and source ID provenance.
-     - *Retrieved Policies Tab:* Grounding status (`STRONG`/`WEAK`), similarity score, and excerpts.
-     - *Source Timeline Tab:* Visual chronological feed of campaign creation, messages, updates, and risk signals.
-     - *Uncertainty & Conflicts Tab:* High-contrast warning banners for `CONFLICTING_EVIDENCE` or zero policy matches.
-   - **Zone 3: Persistent Human Decision Rail:**
-     - Reviewer controls for `APPROVE`, `MODIFY`, `REJECT`, `ESCALATE`, optional overrides, and reviewer notes.
-   - **Zone 4: Immutable Audit Trail:**
-     - Chronological event timeline with an expandable raw JSON technical drawer.
+Decision submission requires a successful backend request. The client reports failure when it cannot record a decision; it does not manufacture a successful offline decision. Backend HTTP errors are generally surfaced instead of being treated as network-fallback results.
 
-3. **Evaluation & Quality Center (`/evaluation`):**
-   - One-click execution of the 5-scenario synthetic benchmark.
-   - Transparent reporting across Category, Action, Escalation, Risk, and Priority agreement.
-   - Root-cause diagnostics explaining why the 80% risk score is a safety asset.
+The hosted backend may sleep or restart. With the checked-in free-tier Render setup, its local SQLite file is instance-bound and can be reset during restarts/redeploys. Evaluation-run lookup is in memory and is also lost when the process restarts.
 
----
+## Verification and five-case evaluation
 
-## Documentation
+From the repository root, with the backend environment active:
 
-Comprehensive engineering documentation is available under [`docs/`](docs/README.md):
-- [`PRD.md`](docs/product/PRD.md) & [`requirements.md`](docs/product/requirements.md)
-- [`decision-log.md`](docs/product/decision-log.md) (Decisions D-001 through D-009)
-- [`architecture.md`](docs/architecture/architecture.md) & [`ADR-001`](docs/architecture/adr/ADR-001-architecture-style.md)
-- [`ai-workflow.md`](docs/architecture/ai-workflow.md) & [`rag-design.md`](docs/architecture/rag-design.md)
-- [`evaluation.md`](docs/ai/evaluation.md) & [`failure-cases.md`](docs/testing/failure-cases.md)
-- [`demo-checklist.md`](docs/deployment/demo-checklist.md) (5-Minute video script)
+```bash
+python -m pytest tests -q
+python -m ruff check app tests
+```
+
+CI runs the backend tests/lint and a frontend production build. A local source check on **November 6, 2026** passed **26 existing tests**, including provider selection, retrieval, case lifecycle, decision recording, evaluation and API integration using synthetic data.
+
+The local deterministic evaluation over all five committed case fixtures produced:
+
+| Dimension | Matching cases | Agreement |
+| --- | ---: | ---: |
+| Category | 5 / 5 | 100% |
+| Recommended action | 5 / 5 | 100% |
+| Escalation flag | 5 / 5 | 100% |
+| Risk | 4 / 5 | 80% |
+| Priority | 4 / 5 | 80% |
+
+All five workflows completed without execution errors. `case-1003` disagreed with the ground truth on risk and priority: the run returned LOW where HIGH was expected. Completion counts and label agreement are separate measures; `succeeded=5` does not mean every expected label matched.
+
+These are exact-match fractions on a small synthetic fixture set, not live-model, real-campaign or independently held-out quality measurements. The frontend's bundled offline benchmark is a separate example and currently identifies a different mismatch (`case-1004`). The [evaluation test](tests/test_evaluation.py), [service](app/services/services.py), and [ground truth](data/evaluation/ground_truth.json) define the actual backend evaluation.
+
+## More interface views
+
+<details>
+<summary>Open the existing screenshot gallery</summary>
+
+These captures illustrate interface layouts and captured states. Some case pages were captured before analysis; filenames alone do not establish that a conflict, citation warning or decision submission is visible. The benchmark image is an existing UI capture rather than the fresh local evaluation above.
+
+**Conflicting-information case, before assessment**
+
+![Conflicting-information case awaiting assessment](docs/assets/screenshots/03-case-1003-conflicting-evidence.png)
+
+**No-policy scenario page**
+
+![No-policy case workspace](docs/assets/screenshots/04-case-1004-no-policy-grounding.png)
+
+**Decision rail, with assessment still required**
+
+![Decision rail before assessment](docs/assets/screenshots/05-decision-rail-submission.png)
+
+**Evaluation interface and captured example results**
+
+![Existing evaluation interface capture](docs/assets/screenshots/06-evaluation-benchmark.png)
+
+**Tablet and phone layout captures**
+
+![Tablet layout at 1024 by 768](docs/assets/screenshots/07-responsive-tablet-1024x768.png)
+
+![Phone layout at 390 by 844](docs/assets/screenshots/08-responsive-mobile-390x844.png)
+
+</details>
+
+## Prototype boundaries
+
+- **Human review is a workflow boundary.** Decisions are recorded with a supplied reviewer ID; the API does not implement reviewer authentication or role-based authorization.
+- **Audit history is application data.** Events are stored in SQLite; the UI label “Immutable Audit Trail” does not establish cryptographic tamper resistance or durable archival storage.
+- **Policy grounding is local and synthetic.** Source IDs and excerpts support inspection, but the prototype does not verify compliance against an authoritative LaunchGood policy service.
+- **Assessment scores are deterministic.** Confidence values are demo heuristics rather than calibrated probabilities. The dashboard's time-saved estimate is an assumption.
+- **Live providers and LangGraph orchestration remain future work.** Existing docs/UI labels describing those designs should be read alongside the active implementations linked above.
+
+## Engineering references
+
+- [Documentation index](docs/README.md)
+- [Product requirements](docs/product/requirements.md) and [decision log](docs/product/decision-log.md)
+- [Architecture](docs/architecture/architecture.md) and [workflow design](docs/architecture/ai-workflow.md)
+- [Retrieval design](docs/architecture/rag-design.md) and [evaluation notes](docs/ai/evaluation.md)
+- [Development setup](docs/development/setup.md) and [deployment guide](docs/deployment/deployment-guide.md)
+- [Synthetic dataset](docs/data/synthetic-dataset.md) and [failure cases](docs/testing/failure-cases.md)
