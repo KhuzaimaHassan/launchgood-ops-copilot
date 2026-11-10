@@ -4,7 +4,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.domain.enums import DecisionType, Priority, RiskLevel
-from app.domain.models import AIAssessment, Case
+from app.domain.models import AIAssessment, Case, ReviewerDecision
 from app.services.services import EvaluationRun
 
 
@@ -53,6 +53,7 @@ class EvaluationRunResponse(BaseModel):
 class CaseResponse(BaseModel):
     case: Case
     assessment: AIAssessment | None = None
+    decisions: list[ReviewerDecision] = Field(default_factory=list)
 
 
 class AuditResponse(BaseModel):

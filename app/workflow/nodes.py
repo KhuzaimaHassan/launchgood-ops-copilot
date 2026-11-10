@@ -160,9 +160,17 @@ def derive_confidence_and_flags(
     if state.errors:
         flags.append("INSUFFICIENT_EVIDENCE")
     score = draft.confidence_score
+    # Demo heuristics, not calibrated probabilities. Never raise a provider score.
+    # Conflicts, absent policy and insufficient evidence cap the score below MEDIUM;
+    # weak grounding caps it below HIGH, using the configured tier boundaries.
+    if {"CONFLICTING_EVIDENCE", "NO_APPLICABLE_POLICY", "INSUFFICIENT_EVIDENCE"} & set(flags):
+        score = min(score, max(0.0, round(medium_threshold - 0.01, 6)))
+    elif "WEAK_POLICY_GROUNDING" in flags:
+        score = min(score, max(0.0, round(high_threshold - 0.01, 6)))
     tier = "HIGH" if score >= high_threshold else "MEDIUM" if score >= medium_threshold else "LOW"
     state.assessment = AIAssessment(
         analysis_run_id=state.analysis_run_id,
+        case_id=state.case.case_id,
         summary=draft.summary,
         category=draft.category,
         risk_level=RiskLevel(draft.risk_level),

@@ -89,6 +89,32 @@ def test_api_get_audit_history_endpoint(api_client: TestClient) -> None:
     assert "payload" in first_event
 
 
+@pytest.mark.parametrize("action", ["APPROVE", "MODIFY", "REJECT", "ESCALATE"])
+def test_case_reload_retains_final_decision_and_original_assessment(api_client, action) -> None:
+    original = api_client.post("/cases/case-1003/analysis").json()["assessment"]
+    payload = {
+        "decision_type": action, "overridden_risk": "MEDIUM",
+        "overridden_priority": "URGENT",
+        "overridden_recommendation": "Synthetic QA: verify the hospital documents.",
+        "reviewer_notes": "Synthetic QA: contradictory procedure updates require review.",
+        "reviewer_id": "qa-reviewer",
+    }
+    response = api_client.post("/cases/case-1003/decision", json=payload)
+    assert response.status_code == 200
+    recorded = response.json()
+    assert recorded["assessment_id"] == original["assessment_id"]
+    assert api_client.post("/evaluation/runs").status_code == 200
+    for route in ["/cases/case-1003", "/cases/case-1003/assessment"]:
+        detail = api_client.get(route).json()
+        assert detail["assessment"] == original
+        assert detail["decisions"] == [recorded]
+        assert detail["case"]["status"] == ("ESCALATED" if action == "ESCALATE" else "RESOLVED")
+    other_case = api_client.get("/cases/case-1002").json()
+    assert other_case["decisions"] == []
+    assert api_client.post("/cases/case-1003/decision", json=payload).status_code == 409
+    assert len(api_client.get("/cases/case-1003").json()["decisions"]) == 1
+
+
 def test_api_evaluation_runs_endpoint(api_client: TestClient) -> None:
     response = api_client.post("/evaluation/runs")
     assert response.status_code == 200

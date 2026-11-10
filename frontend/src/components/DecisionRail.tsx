@@ -1,17 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Case, AIAssessment, DecisionType, RiskLevel, Priority } from "@/types";
+import { Case, AIAssessment, DecisionType, ReviewerDecision } from "@/types";
 import { submitDecision } from "@/lib/api";
 import { CheckCircle, AlertOctagon, CornerDownRight, XCircle, ArrowUpRight, Check } from "lucide-react";
 
 interface DecisionRailProps {
   caseData: Case;
   assessment: AIAssessment | null;
-  onDecisionSubmitted: () => void;
+  decisions: ReviewerDecision[];
+  offline: boolean;
+  onDecisionSubmitted: (decision: ReviewerDecision) => Promise<void>;
 }
 
-export default function DecisionRail({ caseData, assessment, onDecisionSubmitted }: DecisionRailProps) {
+export default function DecisionRail({ caseData, assessment, decisions, offline, onDecisionSubmitted }: DecisionRailProps) {
   const [decisionType, setDecisionType] = useState<DecisionType>("APPROVE");
   const [overriddenRisk, setOverriddenRisk] = useState<string>("UNCHANGED");
   const [overriddenPriority, setOverriddenPriority] = useState<string>("UNCHANGED");
@@ -23,12 +25,12 @@ export default function DecisionRail({ caseData, assessment, onDecisionSubmitted
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!assessment) return;
+    if (!canSubmit || isSubmitting) return;
     setIsSubmitting(true);
     setSuccessMsg(null);
     setErrorMsg(null);
     try {
-      await submitDecision(caseData.case_id, {
+      const saved = await submitDecision(caseData.case_id, {
         decision_type: decisionType,
         overridden_risk: overriddenRisk === "UNCHANGED" ? null : overriddenRisk,
         overridden_priority: overriddenPriority === "UNCHANGED" ? null : overriddenPriority,
@@ -37,7 +39,7 @@ export default function DecisionRail({ caseData, assessment, onDecisionSubmitted
         reviewer_id: "human-reviewer-01",
       });
       setSuccessMsg("Decision recorded successfully.");
-      onDecisionSubmitted();
+      await onDecisionSubmitted(saved);
     } catch (err: any) {
       setErrorMsg(err.message || "Decision submission failed. Consequential decisions require backend persistence.");
     } finally {
@@ -46,6 +48,9 @@ export default function DecisionRail({ caseData, assessment, onDecisionSubmitted
   };
 
   const isAnalyzed = Boolean(assessment);
+  const recorded = decisions[decisions.length - 1];
+  const isClosed = caseData.status === "RESOLVED" || caseData.status === "ESCALATED";
+  const canSubmit = isAnalyzed && !offline && !isClosed && !recorded && caseData.status === "AWAITING_HUMAN_DECISION";
 
   return (
     <div className="bg-navy-900/95 rounded-2xl border border-navy-700 p-6 shadow-xl sticky top-24">
@@ -61,7 +66,27 @@ export default function DecisionRail({ caseData, assessment, onDecisionSubmitted
         </div>
       </div>
 
-      {!isAnalyzed ? (
+      {recorded ? (
+        <section aria-label="Recorded human decision" className="space-y-4 text-xs break-words">
+          <div className="rounded-xl p-4 bg-emerald-950/40 border border-emerald-800/60">
+            <h4 className="font-bold text-emerald-300">Recorded Human Decision: {recorded.decision_type}</h4>
+            <p className="mt-1 text-slate-300">Case {caseData.status.replace(/_/g, " ")}. Further submission is closed.</p>
+          </div>
+          <dl className="space-y-3">
+            <div><dt className="text-slate-400">Final risk</dt><dd className="text-white mt-1">{recorded.overridden_risk ?? assessment?.risk_level ?? "Not available"}{recorded.overridden_risk ? " (reviewer override)" : " (AI unchanged)"}</dd></div>
+            <div><dt className="text-slate-400">Final priority</dt><dd className="text-white mt-1">{recorded.overridden_priority ?? assessment?.priority ?? "Not available"}{recorded.overridden_priority ? " (reviewer override)" : " (AI unchanged)"}</dd></div>
+            <div><dt className="text-slate-400">Final recommendation</dt><dd className="text-white mt-1 whitespace-pre-wrap">{recorded.overridden_recommendation ?? assessment?.recommendation_action.replace(/_/g, " ") ?? "Not available"}</dd></div>
+            <div><dt className="text-slate-400">Reviewer notes & rationale</dt><dd className="text-white mt-1 whitespace-pre-wrap">{recorded.reviewer_notes || "No notes recorded."}</dd></div>
+            <div><dt className="text-slate-400">Reviewer</dt><dd className="text-white mt-1">{recorded.reviewer_id}</dd></div>
+            <div><dt className="text-slate-400">Recorded at</dt><dd className="text-white mt-1">{recorded.created_at ? new Date(recorded.created_at).toLocaleString() : "Not available"}</dd></div>
+          </dl>
+          <p className="text-slate-400">The original AI assessment remains unchanged above.</p>
+        </section>
+      ) : isClosed ? (
+        <p role="status" className="text-xs text-amber-300 leading-relaxed">This case is {caseData.status.toLowerCase()}; further submission is closed. Recorded decision details are unavailable from the connected API.</p>
+      ) : offline ? (
+        <p role="status" className="text-xs text-amber-300 leading-relaxed">Offline preview only. Connect to the backend before recording a human decision.</p>
+      ) : !isAnalyzed ? (
         <div className="bg-navy-950/60 rounded-xl p-5 border border-navy-800 text-center">
           <AlertOctagon className="w-8 h-8 text-amber-400 mx-auto mb-2 opacity-80" />
           <p className="text-xs font-semibold text-slate-200 mb-1">Assessment Required</p>
@@ -69,8 +94,11 @@ export default function DecisionRail({ caseData, assessment, onDecisionSubmitted
             Run the AI assessment above before recording a consequential human decision.
           </p>
         </div>
+      ) : !canSubmit ? (
+        <p role="status" className="text-xs text-amber-300">A decision can only be recorded while this case is awaiting human decision.</p>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit}>
+          <fieldset disabled={isSubmitting} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-slate-300 mb-1.5">Consequential Action</label>
             <div className="grid grid-cols-2 gap-2">
@@ -86,6 +114,7 @@ export default function DecisionRail({ caseData, assessment, onDecisionSubmitted
                   <button
                     key={item.type}
                     type="button"
+                    aria-pressed={active}
                     onClick={() => setDecisionType(item.type as DecisionType)}
                     className={`flex items-center gap-2 p-2.5 rounded-xl border text-xs font-bold transition-all ${
                       active
@@ -103,8 +132,8 @@ export default function DecisionRail({ caseData, assessment, onDecisionSubmitted
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1">Risk Override</label>
-              <select
+              <label htmlFor="risk-override" className="block text-[11px] font-semibold text-slate-400 mb-1">Risk Override</label>
+              <select id="risk-override"
                 value={overriddenRisk}
                 onChange={(e) => setOverriddenRisk(e.target.value)}
                 className="w-full bg-navy-950 border border-navy-700 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-brand-teal"
@@ -117,8 +146,8 @@ export default function DecisionRail({ caseData, assessment, onDecisionSubmitted
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1">Priority Override</label>
-              <select
+              <label htmlFor="priority-override" className="block text-[11px] font-semibold text-slate-400 mb-1">Priority Override</label>
+              <select id="priority-override"
                 value={overriddenPriority}
                 onChange={(e) => setOverriddenPriority(e.target.value)}
                 className="w-full bg-navy-950 border border-navy-700 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-brand-teal"
@@ -133,8 +162,8 @@ export default function DecisionRail({ caseData, assessment, onDecisionSubmitted
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 mb-1">Recommendation Override (Optional)</label>
-            <input
+            <label htmlFor="recommendation-override" className="block text-[11px] font-semibold text-slate-400 mb-1">Recommendation Override (Optional)</label>
+            <input id="recommendation-override"
               type="text"
               placeholder="e.g. Request hospital invoice discharge certificate..."
               value={overriddenRec}
@@ -144,8 +173,8 @@ export default function DecisionRail({ caseData, assessment, onDecisionSubmitted
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 mb-1">Reviewer Notes & Rationale</label>
-            <textarea
+            <label htmlFor="reviewer-notes" className="block text-[11px] font-semibold text-slate-400 mb-1">Reviewer Notes & Rationale</label>
+            <textarea id="reviewer-notes"
               rows={3}
               placeholder="Document the operational basis for your final decision..."
               value={reviewerNotes}
@@ -175,6 +204,7 @@ export default function DecisionRail({ caseData, assessment, onDecisionSubmitted
           >
             {isSubmitting ? "Recording Decision..." : "Submit Consequential Decision"}
           </button>
+          </fieldset>
         </form>
       )}
     </div>

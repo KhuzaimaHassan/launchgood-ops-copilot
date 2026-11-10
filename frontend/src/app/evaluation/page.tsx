@@ -6,30 +6,7 @@ import { EvaluationRun } from "@/types";
 import { Play, BarChart3, AlertOctagon, CheckCircle2, AlertTriangle } from "lucide-react";
 
 export default function EvaluationPage() {
-  const [result, setResult] = useState<EvaluationRun | null>({
-    run_id: "eval-baseline-01",
-    total: 5,
-    succeeded: 5,
-    failed: 0,
-    failures: [
-      {
-        case_id: "case-1004",
-        title: "Unusual cross-border legal defense inquiry",
-        mismatches: {
-          risk: "actual 'LOW' vs expected 'MEDIUM'",
-          priority: "actual 'LOW' vs expected 'MEDIUM'",
-        },
-        tags: ["no_policy"],
-      },
-    ],
-    metrics: {
-      category: 1.0,
-      action: 1.0,
-      escalation: 1.0,
-      risk: 0.8,
-      priority: 0.8,
-    },
-  });
+  const [result, setResult] = useState<EvaluationRun | null>(null);
   const [running, setRunning] = useState(false);
   const [offline, setOffline] = useState(false);
 
@@ -54,7 +31,7 @@ export default function EvaluationPage() {
     { label: "Category Agreement", key: "category" },
     { label: "Action Agreement", key: "action" },
     { label: "Escalation Agreement", key: "escalation" },
-    { label: "Risk Macro Agreement", key: "risk" },
+    { label: "Risk Agreement", key: "risk" },
     { label: "Priority Agreement", key: "priority" },
   ];
 
@@ -64,7 +41,7 @@ export default function EvaluationPage() {
         <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-950/80 border border-amber-800/80 text-amber-300 text-xs font-semibold shadow-lg">
           <AlertTriangle className="w-5 h-5 flex-shrink-0 text-amber-400" />
           <span>
-            <b>Offline Demo Benchmark Active:</b> FastAPI backend (<code>{API_BASE}</code>) is unreachable. Evaluation benchmark metrics are derived from the offline synthetic ground truth set.
+            <b>Offline Demo Benchmark Active:</b> FastAPI backend (<code>{API_BASE}</code>) is unreachable. The displayed values are static offline examples, not a completed backend benchmark.
           </span>
         </div>
       )}
@@ -80,7 +57,7 @@ export default function EvaluationPage() {
               Five-Scenario Synthetic Benchmark
             </h1>
             <p className="text-xs text-slate-300 leading-relaxed">
-              Evaluating the bounded LangGraph AI workflow against curated ground-truth cases. Metrics compare all 5 dimensions: Category, Action, Escalation, Risk, and Priority.
+              Evaluating the deterministic sequential assessment workflow against curated ground-truth cases. Metrics compare all 5 dimensions: Category, Action, Escalation, Risk, and Priority.
             </p>
           </div>
 
@@ -108,9 +85,9 @@ export default function EvaluationPage() {
               className="bg-navy-900 rounded-2xl p-5 border border-navy-700 shadow-md flex flex-col justify-between"
             >
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">{m.label}</span>
-              <div className="text-3xl font-extrabold text-white mb-2">{pct}%</div>
+              <div className="text-3xl font-extrabold text-white mb-2">{result ? `${pct}%` : "—"}</div>
               <div className={`text-[11px] font-semibold ${pct >= 90 ? "text-emerald-400" : "text-amber-400"}`}>
-                Ground-Truth Match
+                {result ? "Ground-Truth Match" : "Not run"}
               </div>
             </div>
           );
@@ -127,7 +104,9 @@ export default function EvaluationPage() {
           </p>
         </div>
 
-        {!result || result.failures.length === 0 ? (
+        {!result ? (
+          <p className="text-sm text-slate-300">No benchmark has run in this session. Run the five synthetic scenarios to see measured results.</p>
+        ) : result.failures.length === 0 ? (
           <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-950/40 border border-emerald-800/50 text-emerald-400 text-xs">
             <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
             <span>All benchmark cases strictly matched expected ground-truth labels across all 5 evaluation dimensions.</span>
@@ -175,7 +154,7 @@ export default function EvaluationPage() {
                   )}
 
                   <p className="text-[11px] text-slate-400 leading-relaxed pt-2 border-t border-navy-900">
-                    <b>Root Cause Analysis:</b> Tested intentional edge-case uncertainty (e.g. unindexed legal domain or conflicting records). The workflow safely prioritized human review.
+                    <b>Review required:</b> Compare the actual and expected labels with the source evidence. A completed run does not establish decision quality or the cause of a mismatch.
                   </p>
                 </div>
               );

@@ -111,7 +111,7 @@ python -m pytest tests -q
 python -m ruff check app tests
 ```
 
-CI runs the backend tests/lint and a frontend production build. A local source check on **November 6, 2026** passed **26 existing tests**, including provider selection, retrieval, case lifecycle, decision recording, evaluation and API integration using synthetic data.
+CI runs the backend tests/lint and a frontend production build. A local source check on **November 10, 2026** passed **37 tests**, including provider selection, retrieval, case lifecycle, decision recording, evaluation and API integration using synthetic data.
 
 The local deterministic evaluation over all five committed case fixtures produced:
 
@@ -120,12 +120,12 @@ The local deterministic evaluation over all five committed case fixtures produce
 | Category | 5 / 5 | 100% |
 | Recommended action | 5 / 5 | 100% |
 | Escalation flag | 5 / 5 | 100% |
-| Risk | 4 / 5 | 80% |
-| Priority | 4 / 5 | 80% |
+| Risk | 5 / 5 | 100% |
+| Priority | 5 / 5 | 100% |
 
-All five workflows completed without execution errors. `case-1003` disagreed with the ground truth on risk and priority: the run returned LOW where HIGH was expected. Completion counts and label agreement are separate measures; `succeeded=5` does not mean every expected label matched.
+All five workflows completed without execution errors and matched the unchanged expected labels. The 6 November baseline scored 80% for risk/priority because case-1003 ignored conflicts when no intake risk signal existed; the corrected mock rule now considers detected conflicts. Completion counts and label agreement remain separate measures; `succeeded=5` alone does not establish agreement.
 
-These are exact-match fractions on a small synthetic fixture set, not live-model, real-campaign or independently held-out quality measurements. The frontend's bundled offline benchmark is a separate example and currently identifies a different mismatch (`case-1004`). The [evaluation test](tests/test_evaluation.py), [service](app/services/services.py), and [ground truth](data/evaluation/ground_truth.json) define the actual backend evaluation.
+These are exact-match fractions on a small synthetic fixture set, not live-model, real-campaign or independently held-out quality measurements. The benchmark page starts without results until run. Its bundled offline benchmark remains a separately labeled static example and identifies a different mismatch (`case-1004`); it is not execution evidence. New assessments apply documented uncertainty caps; saved historical scores remain unchanged. See [review semantics](docs/product/review-semantics.md) and the [acceptance evidence](docs/testing/acceptance-matrix.md) for scope and browser-verification limits. The [evaluation test](tests/test_evaluation.py), [service](app/services/services.py), and [ground truth](data/evaluation/ground_truth.json) define the actual backend evaluation.
 
 ## More interface views
 

@@ -49,10 +49,7 @@ export default function DashboardPage() {
     (c) => c.status === "AWAITING_HUMAN_DECISION" || (c.status === "PENDING_ANALYSIS" && (c.initial_priority === "HIGH" || c.initial_priority === "URGENT"))
   ).length;
 
-  const highRiskCount = cases.filter((c) => {
-    const asm = assessments[c.case_id];
-    return (asm && asm.risk_level === "HIGH") || c.initial_priority === "HIGH" || c.initial_priority === "URGENT" || c.risk_signals.some((s) => s.severity === "HIGH");
-  }).length;
+  const highRiskCount = cases.filter((c) => assessments[c.case_id]?.risk_level === "HIGH").length;
 
   const scoredAssessments = Object.values(assessments).filter((a): a is AIAssessment => a !== null);
   const avgConfidence = scoredAssessments.length
@@ -88,7 +85,7 @@ export default function DashboardPage() {
     const asm = assessments[c.case_id];
     if (selectedStatuses.length > 0 && !selectedStatuses.includes(c.status)) return false;
     
-    const riskLevel = asm ? asm.risk_level : c.initial_priority === "HIGH" ? "HIGH" : "LOW";
+    const riskLevel = asm?.risk_level ?? "PENDING";
     if (selectedRisks.length > 0 && !selectedRisks.includes(riskLevel)) return false;
 
     const priorityLevel = asm ? asm.priority : c.initial_priority;
@@ -125,7 +122,7 @@ export default function DashboardPage() {
             Evidence-Backed Campaign Operations
           </h1>
           <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-            Synthesize campaign details, support messages, updates, and risk signals against verified LaunchGood compliance policies. AI prepares the structured assessment — human reviewers own the consequence.
+            Synthesize campaign details, support messages, updates, and risk signals against explicitly synthetic local policy examples. AI prepares the structured assessment — human reviewers own the consequence.
           </p>
         </div>
       </div>
@@ -140,23 +137,23 @@ export default function DashboardPage() {
           tone="amber"
         />
         <MetricCard
-          label="High Risk Cases"
+          label="Assessed High Risk"
           value={highRiskCount}
-          note="Requires attention"
+          note="Analyzed cases only"
           icon={<ShieldAlert className="w-5 h-5" />}
           tone="red"
         />
         <MetricCard
-          label="Avg Confidence"
-          value={`${Math.round(avgConfidence * 100)}% (${avgTier})`}
-          note="Across analyzed cases"
+          label="Avg Demo Confidence"
+          value={scoredAssessments.length ? `${Math.round(avgConfidence * 100)}% (${avgTier})` : "Not assessed"}
+          note="Rule-derived, not calibrated"
           icon={<CheckCircle2 className="w-5 h-5" />}
           tone="teal"
         />
         <MetricCard
           label="Est. Time Saved"
           value={`~${timeSavedMinutes} min`}
-          note="18 min average per case"
+          note="Assumes 18 min per case; not measured"
           icon={<Clock className="w-5 h-5" />}
           tone="green"
         />
@@ -209,9 +206,9 @@ export default function DashboardPage() {
 
             {/* Risk Filter */}
             <div>
-              <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Risk Level</span>
+              <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Assessed Risk</span>
               <div className="flex flex-wrap gap-1">
-                {["HIGH", "MEDIUM", "LOW"].map((rk) => (
+                {["HIGH", "MEDIUM", "LOW", "PENDING"].map((rk) => (
                   <button
                     key={rk}
                     onClick={() => toggleArrayFilter(selectedRisks, rk, setSelectedRisks)}

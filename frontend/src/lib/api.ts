@@ -42,7 +42,7 @@ export async function getCases(): Promise<Case[]> {
   return await res.json();
 }
 
-export async function getCaseDetails(caseId: string): Promise<{ case: Case; assessment: AIAssessment | null }> {
+export async function getCaseDetails(caseId: string): Promise<{ case: Case; assessment: AIAssessment | null; decisions?: ReviewerDecision[] }> {
   let res: Response;
   try {
     res = await fetch(`${API_BASE}/cases/${caseId}`, { cache: "no-store" });
