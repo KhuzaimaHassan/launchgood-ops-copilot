@@ -31,7 +31,7 @@ export default function AuditTimeline({ events }: AuditTimelineProps) {
       <div className="flex items-center justify-between pb-4 mb-4 border-b border-navy-800">
         <div className="flex items-center gap-2">
           <History className="w-4 h-4 text-brand-tealLight" />
-          <h3 className="text-sm font-bold text-white">Immutable Audit Trail</h3>
+          <h3 className="text-sm font-bold text-white">Audit History</h3>
         </div>
         <button
           onClick={() => setShowJson(!showJson)}
