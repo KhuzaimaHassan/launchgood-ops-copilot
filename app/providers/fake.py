@@ -16,8 +16,10 @@ class FakeLLMProvider:
         context = json.loads(prompt.split(marker, 1)[1])
         signals = context["normalized_signals"]
         category = signals["issue_category_candidates"][0]
-        risk = RiskLevel.HIGH if signals["risk_indicators"] else RiskLevel.LOW
-        priority = Priority.HIGH if signals["risk_indicators"] else Priority.LOW
+        # Conflicting records need urgent review even without an intake risk signal.
+        needs_attention = bool(signals["risk_indicators"] or context["conflicts"])
+        risk = RiskLevel.HIGH if needs_attention else RiskLevel.LOW
+        priority = Priority.HIGH if needs_attention else Priority.LOW
         action = (
             RecommendationAction.REQUEST_DOCUMENTATION
             if category == "DOCUMENTATION_CONCERN"
@@ -33,5 +35,6 @@ class FakeLLMProvider:
             recommendation_action=action.value,
             recommendation_rationale="Recommendation is based on the available synthetic source evidence.",
             human_review_required=True,
+            escalation_recommended=bool(context["conflicts"]),
         )
         return draft, ProviderMetadata(provider="fake", model="deterministic-v1")

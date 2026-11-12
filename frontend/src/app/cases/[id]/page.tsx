@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { Case, AIAssessment, AuditEvent } from "@/types";
+import { useParams } from "next/navigation";
+import { Case, AIAssessment, AuditEvent, ReviewerDecision } from "@/types";
 import { getCaseDetails, analyzeCase, getAuditHistory, isFallbackActive } from "@/lib/api";
+import RiskBadge from "@/components/RiskBadge";
 import DecisionRail from "@/components/DecisionRail";
 import SourceTimeline from "@/components/SourceTimeline";
 import AuditTimeline from "@/components/AuditTimeline";
@@ -11,7 +12,6 @@ import {
   ArrowLeft,
   Sparkles,
   ShieldAlert,
-  ShieldCheck,
   FileCheck2,
   AlertTriangle,
   BookOpen,
@@ -24,11 +24,11 @@ import Link from "next/link";
 
 export default function CaseReviewPage() {
   const params = useParams();
-  const router = useRouter();
   const caseId = params?.id as string;
 
   const [caseData, setCaseData] = useState<Case | null>(null);
   const [assessment, setAssessment] = useState<AIAssessment | null>(null);
+  const [decisions, setDecisions] = useState<ReviewerDecision[]>([]);
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
   const [activeTab, setActiveTab] = useState<"evidence" | "policies" | "timeline" | "uncertainty">("evidence");
   const [loading, setLoading] = useState(true);
@@ -41,6 +41,7 @@ export default function CaseReviewPage() {
       const details = await getCaseDetails(caseId);
       setCaseData(details.case);
       setAssessment(details.assessment);
+      setDecisions(details.decisions ?? []);
       setOffline(isFallbackActive());
       const audit = await getAuditHistory(caseId);
       setAuditEvents(audit.events);
@@ -100,7 +101,7 @@ export default function CaseReviewPage() {
     );
   }
 
-  const riskLevel = assessment?.risk_level || (caseData.initial_priority === "HIGH" ? "HIGH" : "LOW");
+  const riskLevel = assessment?.risk_level;
   const isPending = caseData.status === "PENDING_ANALYSIS";
 
   return (
@@ -126,15 +127,7 @@ export default function CaseReviewPage() {
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-navy-800 text-slate-300 border border-navy-700">
                 {caseData.status.replace(/_/g, " ")}
               </span>
-              {riskLevel === "HIGH" ? (
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-950/90 text-red-400 border border-red-800/80 flex items-center gap-1.5">
-                  <ShieldAlert className="w-3.5 h-3.5" /> High Risk
-                </span>
-              ) : (
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-950/90 text-emerald-400 border border-emerald-800/80 flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5" /> Low Risk
-                </span>
-              )}
+              <RiskBadge risk={riskLevel} />
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{caseData.title}</h1>
             <p className="text-xs text-slate-400 line-clamp-1 max-w-3xl">{caseData.campaign.description}</p>
@@ -148,7 +141,7 @@ export default function CaseReviewPage() {
                 className="w-full sm:w-auto flex items-center justify-center gap-2.5 bg-gradient-to-r from-brand-teal to-brand-emerald hover:brightness-110 text-white font-bold text-xs py-3 px-6 rounded-xl shadow-lg shadow-brand-teal/25 transition-all disabled:opacity-50"
               >
                 <Sparkles className={`w-4 h-4 ${analyzing ? "animate-spin" : ""}`} />
-                <span>{analyzing ? "Running LangGraph Workflow..." : "Run AI Assessment"}</span>
+                <span>{analyzing ? "Running Assessment..." : "Run AI Assessment"}</span>
               </button>
             ) : (
               <div className="flex items-center gap-2 bg-emerald-950/60 text-emerald-400 border border-emerald-800/60 px-4 py-2 rounded-xl text-xs font-semibold">
@@ -170,13 +163,13 @@ export default function CaseReviewPage() {
 
           <div className="bg-navy-950/60 rounded-xl p-3.5 border border-navy-800">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Assessed Risk</span>
-            <div className={`text-xs font-bold mt-1 ${riskLevel === "HIGH" ? "text-red-400" : "text-emerald-400"}`}>
+            <div className={`text-xs font-bold mt-1 ${riskLevel === "HIGH" ? "text-red-400" : riskLevel === "LOW" ? "text-emerald-400" : "text-amber-300"}`}>
               {assessment ? assessment.risk_level : "PENDING"}
             </div>
           </div>
 
           <div className="bg-navy-950/60 rounded-xl p-3.5 border border-navy-800">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Priority</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{assessment ? "Assessed Priority" : "Intake Priority"}</span>
             <div className="text-xs font-bold text-white mt-1">
               {assessment ? assessment.priority : caseData.initial_priority}
             </div>
@@ -184,8 +177,8 @@ export default function CaseReviewPage() {
 
           <div className="bg-navy-950/60 rounded-xl p-3.5 border border-navy-800">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Confidence</span>
-              <HelpCircle className="w-3 h-3 text-slate-500" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Demo confidence</span>
+              <HelpCircle aria-label="Rule-derived demo score, not a calibrated probability" className="w-3 h-3 text-slate-500" />
             </div>
             <div className="text-xs font-bold text-brand-tealLight mt-1">
               {assessment ? `${Math.round(assessment.confidence_score * 100)}% (${assessment.confidence_tier})` : "—"}
@@ -200,6 +193,8 @@ export default function CaseReviewPage() {
           </div>
         </div>
       </div>
+
+      <p className="text-xs text-slate-400">Confidence is a rule-derived demo score, not a calibrated probability. Saved assessments retain the score from their original run; updated rules apply to new assessments.</p>
 
       {/* Main Review Workspace Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -310,7 +305,7 @@ export default function CaseReviewPage() {
                 {!assessment || assessment.uncertainty_flags.length === 0 ? (
                   <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-950/40 border border-emerald-800/50 text-emerald-400 text-xs">
                     <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-                    <span>No conflicting facts or policy grounding gaps detected in this case.</span>
+                    <span>{assessment ? "No uncertainty flags were raised by the demo rules; human review is still required." : "Run the assessment to check for uncertainty and conflicting records."}</span>
                   </div>
                 ) : (
                   assessment.uncertainty_flags.map((flag, idx) => (
@@ -319,7 +314,7 @@ export default function CaseReviewPage() {
                       <div>
                         <span className="font-bold text-amber-200">Uncertainty Trigger: {flag.replace(/_/g, " ")}</span>
                         <p className="text-[11px] text-amber-300/80 mt-1">
-                          The system reduced its confidence score and elevated this case for mandatory human verification.
+                          This flag requires human verification. New assessments cap demo confidence below HIGH for weak grounding and below MEDIUM for conflicts, missing policy or insufficient evidence.
                         </p>
                       </div>
                     </div>
@@ -330,7 +325,7 @@ export default function CaseReviewPage() {
                   <div className="flex items-start gap-3 p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-300 text-xs">
                     <ShieldAlert className="w-5 h-5 flex-shrink-0 text-red-400 mt-0.5" />
                     <div>
-                      <span className="font-bold text-red-200">Mandatory Lead Escalation Recommended</span>
+                      <span className="font-bold text-red-200">Lead Escalation Recommended</span>
                       <p className="text-[11px] text-red-300/80 mt-1">
                         Contradictory records or policy ambiguity requires operations lead review before campaign disbursement.
                       </p>
@@ -347,7 +342,11 @@ export default function CaseReviewPage() {
 
         {/* ZONE 3: Persistent Human Decision Rail */}
         <div className="lg:col-span-1">
-          <DecisionRail caseData={caseData} assessment={assessment} onDecisionSubmitted={loadData} />
+          <DecisionRail caseData={caseData} assessment={assessment} decisions={decisions} offline={isOfflineAssessment} onDecisionSubmitted={async (decision) => {
+            setDecisions([decision]);
+            setCaseData({ ...caseData, status: decision.decision_type === "ESCALATE" ? "ESCALATED" : "RESOLVED" });
+            await loadData();
+          }} />
         </div>
       </div>
     </div>

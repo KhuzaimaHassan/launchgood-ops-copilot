@@ -73,7 +73,11 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
         case = case_service.get_case(case_id)
         if case is None:
             raise HTTPException(status_code=404, detail="case not found")
-        return CaseResponse(case=case, assessment=analysis_service.latest_assessment(case_id))
+        return CaseResponse(
+            case=case,
+            assessment=analysis_service.latest_assessment(case_id),
+            decisions=decision_service.list_decisions(case_id),
+        )
 
     @app.post("/cases/{case_id}/analysis", response_model=CaseResponse)
     def analyze_case(case_id: str) -> CaseResponse:
@@ -94,7 +98,11 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
         case = case_service.get_case(case_id)
         if case is None:
             raise HTTPException(status_code=404, detail="case not found")
-        return CaseResponse(case=case, assessment=analysis_service.latest_assessment(case_id))
+        return CaseResponse(
+            case=case,
+            assessment=analysis_service.latest_assessment(case_id),
+            decisions=decision_service.list_decisions(case_id),
+        )
 
     @app.post("/cases/{case_id}/decision")
     def record_decision(case_id: str, request: DecisionRequest) -> ReviewerDecision:

@@ -78,6 +78,9 @@ class DecisionService:
             raise LookupError(f"case not found: {decision.case_id}")
         if case.status is not CaseStatus.AWAITING_HUMAN_DECISION:
             raise ValueError(f"case cannot receive a decision from state {case.status}")
+        assessments = self.repository.list_assessments(case.case_id)
+        if assessments:
+            decision.assessment_id = assessments[-1].assessment_id
         if decision.decision_type is DecisionType.ESCALATE:
             case.status = CaseStatus.ESCALATED
         else:
@@ -140,7 +143,10 @@ class EvaluationService:
 
         for case in cases:
             try:
-                assessment = self.workflow.run(case, analysis_run_id=f"{run.run_id}-{case.case_id}")
+                # Benchmarks must not replace the assessment a human actually reviewed.
+                assessment = self.workflow.run(
+                    case, analysis_run_id=f"{run.run_id}-{case.case_id}", persist=False
+                )
                 run.succeeded += 1
                 expected = expected_map.get(case.case_id)
                 if expected:

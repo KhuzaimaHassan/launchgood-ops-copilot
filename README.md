@@ -8,9 +8,9 @@ A human-review workflow prototype for **synthetic campaign cases**. It brings ca
 
 The implemented assessment provider is deterministic (`mock`), and retrieval uses local hash-based embeddings over two synthetic policy documents. This demonstrates the review workflow and its boundaries; it does not establish live-LLM quality or real LaunchGood policy verification. The project uses synthetic fixtures rather than real campaign records.
 
-![Synthetic campaign review dashboard](docs/assets/screenshots/01-command-center-dashboard.png)
+![Synthetic campaign review dashboard](docs/assets/screenshots/07-verified-queue.jpg)
 
-*Existing dashboard capture. Case counts reflect the captured demo state. Confidence is a rule-derived demo score, and estimated time saved assumes 18 minutes per assessed case rather than a measured productivity improvement.*
+*10 November local review capture with synthetic fixtures. Pending risk is separate from assessed risk; case counts reflect the QA state. Confidence is a demo score, and estimated time saved assumes 18 minutes per assessed case rather than a measured productivity improvement.*
 
 ## Walk through a case
 
@@ -19,9 +19,16 @@ The implemented assessment provider is deterministic (`mock`), and retrieval use
 3. **Review the result** across Evidence, Retrieved Policies, Source Timeline and Uncertainty & Conflicts.
 4. **Record a human decision**: approve, modify, reject or escalate, with optional overrides and reviewer notes. The backend checks the case lifecycle before recording the decision and related audit event.
 
-![Case review workspace before assessment](docs/assets/screenshots/02-case-1001-review-workspace.png)
+![Conflict assessment and recorded human decision](docs/assets/screenshots/08-verified-conflict-review.jpg)
 
-*Existing case-workspace capture before analysis: the decision rail requires an assessment first. Empty evidence/policy tabs in this image are not proof of a completed assessment.*
+*Verified local case 1003: the HIGH/HIGH AI assessment, LOW demo confidence, conflict flags and recorded reviewer overrides remain distinct. Synthetic reviewer notes are shown; this is not a real campaign decision.*
+
+<details>
+<summary>Mobile recorded-decision view</summary>
+
+<img src="docs/assets/screenshots/09-verified-mobile-decision.jpg" alt="Recorded human decision on a 390-pixel-wide browser" width="390" />
+
+</details>
 
 ## Implemented scope
 
@@ -111,7 +118,9 @@ python -m pytest tests -q
 python -m ruff check app tests
 ```
 
-CI runs the backend tests/lint and a frontend production build. A local source check on **November 6, 2026** passed **26 existing tests**, including provider selection, retrieval, case lifecycle, decision recording, evaluation and API integration using synthetic data.
+Actual browser clicks, reloads and resized layouts passed on the isolated local stack at **390×844, 1024×768 and 1440×900** on 10 November. This covers queue filters, assessment, MODIFY submission, persisted summary, uncertainty/audit controls and benchmark behavior; all four decision actions have API test coverage. It is not a physical-device or production deployment claim.
+
+CI runs the backend tests/lint and a frontend production build. A local source check on **November 10, 2026** passed **37 tests**, including provider selection, retrieval, case lifecycle, decision recording, evaluation and API integration using synthetic data.
 
 The local deterministic evaluation over all five committed case fixtures produced:
 
@@ -120,12 +129,12 @@ The local deterministic evaluation over all five committed case fixtures produce
 | Category | 5 / 5 | 100% |
 | Recommended action | 5 / 5 | 100% |
 | Escalation flag | 5 / 5 | 100% |
-| Risk | 4 / 5 | 80% |
-| Priority | 4 / 5 | 80% |
+| Risk | 5 / 5 | 100% |
+| Priority | 5 / 5 | 100% |
 
-All five workflows completed without execution errors. `case-1003` disagreed with the ground truth on risk and priority: the run returned LOW where HIGH was expected. Completion counts and label agreement are separate measures; `succeeded=5` does not mean every expected label matched.
+All five workflows completed without execution errors and matched the unchanged expected labels. The 6 November baseline scored 80% for risk/priority because case-1003 ignored conflicts when no intake risk signal existed; the corrected mock rule now considers detected conflicts. Completion counts and label agreement remain separate measures; `succeeded=5` alone does not establish agreement.
 
-These are exact-match fractions on a small synthetic fixture set, not live-model, real-campaign or independently held-out quality measurements. The frontend's bundled offline benchmark is a separate example and currently identifies a different mismatch (`case-1004`). The [evaluation test](tests/test_evaluation.py), [service](app/services/services.py), and [ground truth](data/evaluation/ground_truth.json) define the actual backend evaluation.
+These are exact-match fractions on a small synthetic fixture set, not live-model, real-campaign or independently held-out quality measurements. The benchmark page starts without results until run. Its bundled offline benchmark remains a separately labeled static example and identifies a different mismatch (`case-1004`); it is not execution evidence. New assessments apply documented uncertainty caps; saved historical scores remain unchanged. See [review semantics](docs/product/review-semantics.md) and the [acceptance evidence](docs/testing/acceptance-matrix.md) for scope and browser-verification limits. The [evaluation test](tests/test_evaluation.py), [service](app/services/services.py), and [ground truth](data/evaluation/ground_truth.json) define the actual backend evaluation.
 
 ## More interface views
 

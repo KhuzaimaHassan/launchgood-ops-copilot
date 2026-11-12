@@ -34,7 +34,9 @@ class AssessmentWorkflow:
         self.repository = repository
         self.config = config or AppConfig()
 
-    def run(self, case: Case, *, analysis_run_id: str | None = None) -> AIAssessment:
+    def run(
+        self, case: Case, *, analysis_run_id: str | None = None, persist: bool = True
+    ) -> AIAssessment:
         state = WorkflowState(
             case=case,
             analysis_run_id=analysis_run_id or f"run-{uuid4().hex[:10]}",
@@ -60,6 +62,6 @@ class AssessmentWorkflow:
             medium_threshold=self.config.confidence_medium_threshold,
         )
         assert state.assessment is not None
-        if self.repository:
+        if self.repository and persist:
             self.repository.save_assessment(case.case_id, state.assessment)
         return state.assessment
